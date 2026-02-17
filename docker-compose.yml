@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  hivemq:
+    image: hivemq/hivemq4:latest
+    container_name: mqtt-broker
+    ports:
+      - "8080:8080"
+      - "1884:1883"  # Зовнішній 1884 -> Внутрішній 1883
+      - "8001:8000"  # Зовнішній 8001 -> Внутрішній 8000
+    volumes:
+      - ./broker/config:/opt/hivemq/conf
+      # Тимчасово приберемо volume для data, щоб OneDrive не блокував створення папок
+    environment:
+      - TZ=Europe/Kyiv
+
+  # Веб-сервер
+  web:
+    image: nginx:alpine
+    container_name: web-server
+    ports:
+      - "80:80"
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+    networks:
+      - mqtt-network
+    depends_on:
+      - hivemq
+
+networks:
+  mqtt-network:
+    driver: bridge
